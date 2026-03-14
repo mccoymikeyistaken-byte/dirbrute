@@ -1,0 +1,16 @@
+Directory Brute Forcing refers to finding the hidden folders/files on a web server that aren't linked anywhere
+These hidden points can be configured to be redirected to the public page,but we need to bypass the redirection and find hidden paths
+
+200 - Exists
+301 - Redirect
+302 - Redirect
+403 - Forbidden
+404 - Not found
+500 - Internal Server Error
+
+threading
+request headers
+rate limiting
+extensions
+status filtering
+result formatting
