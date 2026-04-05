@@ -34,6 +34,29 @@ def prompt(label, default=None, cast=str, validator=None):
             return prompt(label, default, cast, validator)
     return value
 
+
+def validate_url(val):
+    if not re.match(r'^https?://', val):
+        return "URL must start with http:// or https://"
+    if len(val.split('/')[2]) < 3:
+        return "URL doesn't look valid — check the domain."
+    return None
+
+def validate_threads(val):
+    if val < 1 or val > 100:
+        return "Threads must be between 1 and 100."
+    return None
+
+def validate_wordlist(val):
+    if not os.path.isfile(val):
+        return f"File not found: {val}"
+    return None
+
+def validate_extensions(val):
+    if not re.match(r'^[\w]+(,[\w]+)*$', val):
+        return "Extensions should be comma-separated without dots (e.g. php,html,txt)"
+    return None
+
 def get_config_interactive():
     DEFAULT_WORDLIST   = "wordLists.txt"
     DEFAULT_OUTPUT     = "results.txt"
@@ -74,7 +97,7 @@ def print_banner():
     console.print("  " + "─" * 69, style="dim")
     console.print(
         "  [cyan]Web Directory Brute-Force Scanner[/cyan]  "
-        "[dim]│[/dim]  [magenta]v1.0.0[/magenta]  [dim]│  by[/dim] [white]mike[/white]"
+        "[dim]│[/dim]  [magenta]v1.0.2[/magenta]  [dim]│  by[/dim] [white]mike[/white]"
     )
     console.print("  " + "─" * 69 + "\n", style="dim")
     console.print("  [bold white]USAGE[/bold white]")
@@ -99,28 +122,6 @@ def print_options(args):
     ext_preview = args.extensions[:40] + " ..." if len(args.extensions) > 40 else args.extensions
     console.print(f"  [yellow][EXTS][/yellow]    [white]{ext_preview}[/white]")
     console.print(f"  [yellow][VERBOSE][/yellow] [white]{'On' if args.verbose else 'Off'}[/white]\n")
-
-def validate_url(val):
-    if not re.match(r'^https?://', val):
-        return "URL must start with http:// or https://"
-    if len(val.split('/')[2]) < 3:
-        return "URL doesn't look valid — check the domain."
-    return None
-
-def validate_threads(val):
-    if val < 1 or val > 100:
-        return "Threads must be between 1 and 100."
-    return None
-
-def validate_wordlist(val):
-    if not os.path.isfile(val):
-        return f"File not found: {val}"
-    return None
-
-def validate_extensions(val):
-    if not re.match(r'^[\w]+(,[\w]+)*$', val):
-        return "Extensions should be comma-separated without dots (e.g. php,html,txt)"
-    return None
 
 print_banner()
 args = get_config_interactive()
@@ -157,7 +158,6 @@ def print_baseDetails(b):
 
 
 console.print("  " + "─" * 69 + "\n", style="dim")
-# BaseLine request for the server
 def get_baseline_details(url):
   try:
     baseline_req = session.get(
@@ -223,11 +223,12 @@ def start_bruteforce(url,base,path):
 def print_FinalResults():
     console.print("\n  [green][*][/green] Scan complete!", style="bold")
     with open(args.output, "r") as f:
-        results = f.read().strip()
+     lines = f.read().strip().splitlines()
+    results = lines[1:]  # skip the header
     if results:
-        console.print("\n  [yellow]Paths found:[/yellow]")
-        for line in results.splitlines():
-            console.print(f"  [green]→[/green] {line}")
+      console.print("\n  [yellow]Paths found:[/yellow]")
+      for line in results:
+        console.print(f"  [green]→[/green] {line}")
     else:
         console.print("  [dim]No paths found.[/dim]")
     console.print(f"\n  [dim]Results saved to[/dim] [white]{args.output}[/white]")

@@ -1,268 +1,170 @@
-# ⚡ Python Directory Fuzzer (Built From Scratch)
+# 🔍 DirBrute
 
-> *“If you want to truly understand a tool… build it yourself.”*
+> A fast, smart, and actually-pretty web directory brute-forcer built in Python.  
+> Because sometimes you just need to know what's hiding behind `/admin`.
 
-Welcome to this small but mighty experiment in **web reconnaissance and security learning**.
-This project is a **custom directory enumeration tool written in Python**, created to explore how professional fuzzers actually work behind the scenes.
 
-And honestly? The author did a pretty impressive job turning curiosity into a working tool. 👏
 
-Instead of simply using existing scanners, the creator decided to **reverse-engineer the logic** behind them and implement the core techniques from scratch.
-
-That’s how real learning happens.
+```
+  ██████╗ ██╗██████╗ ██████╗ ██╗   ██╗███████╗████████╗███████╗██████╗ 
+  ██╔══██╗██║██╔══██╗██╔══██╗██║   ██║██╔════╝╚══██╔══╝██╔════╝██╔══██╗
+  ██║  ██║██║██████╔╝██████╔╝██║   ██║███████╗   ██║   █████╗  ██████╔╝
+  ██║  ██║██║██╔══██╗██╔══██╗██║   ██║╚════██║   ██║   ██╔══╝  ██╔══██╗
+  ██████╔╝██║██║  ██║██████╔╝╚██████╔╝███████║   ██║   ███████╗██║  ██║
+  ╚═════╝ ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
+```
 
 ---
 
-# 🧠 What This Project Is About
+## What is this?
 
-When performing web security reconnaissance, one common task is **discovering hidden endpoints** on a website.
+DirBrute is a web directory brute-forcing tool — it takes a target URL and a wordlist, then hammers the server with requests to find hidden paths, files, and endpoints that aren't linked anywhere publicly.
 
-Many web applications contain:
+Think of it as knocking on every door in a building to see which ones actually open.
 
-* hidden directories
-* internal APIs
-* admin panels
-* forgotten backup files
-* development routes
-
-Professional tools like **ffuf** or **Gobuster** help find these.
-
-But the real question is:
-
-> *How do those tools actually work internally?*
-
-This project answers that by implementing the core ideas step-by-step.
+It's smarter than just checking for `200 OK` though. It fingerprints the server's "not found" response first (status code, body length, word count, line count), then flags anything that *deviates* from that baseline — which means it catches soft 404s, redirect traps, and custom error pages that other tools miss.
 
 ---
 
-# 🚀 Features
+## Features
 
-This tool performs **multithreaded directory enumeration** and intelligently filters responses using multiple fingerprinting techniques.
-
-### Implemented Features
-
-✔ Baseline response fingerprinting
-✔ HTTP status comparison
-✔ Response length comparison
-✔ Response hashing (MD5)
-✔ Word count analysis
-✔ Line count analysis
-✔ Redirect detection
-✔ Multithreaded scanning
-✔ Command line interface
-
-These techniques help the scanner **separate real endpoints from fake server responses**.
-
-Because many websites return identical pages for invalid routes.
-
-This tool learns the **fingerprint of a fake page** and ignores it.
-
-Pretty clever.
+- 🧠 **Baseline fingerprinting** — profiles the server's 404 behavior before scanning, not just status codes
+- ⚡ **Multithreaded** — configurable thread count for fast scanning
+- 🎨 **Clean terminal UI** — built with Rich, looks good in your screenshots
+- ✅ **Input validation** — won't let you fat-finger a bad URL and waste 10 minutes
+- 🔌 **Smart extension handling** — won't append `.php` to `backup.bak` (you'd be surprised how many tools do this)
+- 💾 **Results saved to file** — with timestamps, so you can diff runs
+- 🎛️ **Interactive wizard** — just run it, no flags to memorize
 
 ---
 
-# ⚙️ How It Works
+## Installation
 
-The scanner follows a simple but effective pipeline.
-
-```
-1️⃣ Send request to random non-existent path
-2️⃣ Capture baseline fingerprint
-3️⃣ Load wordlist
-4️⃣ Send requests in parallel using threads
-5️⃣ Compare responses with baseline
-6️⃣ Flag anything different
+**Clone the repo:**
+```bash
+git clone https://github.com/yourusername/dirbrute.git
+cd dirbrute
 ```
 
-If a response differs in:
-
-* status code
-* content length
-* hash
-* word count
-* line count
-
-…it is marked as an **interesting endpoint**.
-
-Which is exactly how real fuzzers think.
-
----
-
-# 📊 Example Output
-
-```
-Baseline status code: 200
-Baseline Text Length: 75002
-Baseline Hash: 2d6432b80ab5ab9cde7167103e3b4c34
-Baseline word count: 3609
-Baseline line count: 30
-
-Possible path found: /api
-Possible path found: /profile
-Possible path found: /assets
-Possible path found: /media
-
-Scan completed in 0.58s
-```
-
-Fast. Clean. Informative.
-
-Not bad at all.
-
----
-
-# 🧵 Multithreading
-
-The scanner uses Python's **ThreadPoolExecutor** to run multiple requests simultaneously.
-
-Instead of scanning paths one by one, it launches multiple workers:
-
-```
-Thread 1 → /admin
-Thread 2 → /login
-Thread 3 → /api
-Thread 4 → /profile
-Thread 5 → /assets
-```
-
-This dramatically reduces scan time.
-
-Efficient and elegant.
-
----
-
-# 🐳 Testing the Tool Using Docker (Safe Practice)
-
-If you want to test the scanner safely, you can spin up a **vulnerable practice web app in Docker**.
-
-A popular choice for learning is **OWASP Juice Shop**.
-
-### Step 1 — Pull the image
-
-```
-docker pull bkimminich/juice-shop
-```
-
-### Step 2 — Run the container
-
-```
-docker run -d -p 3000:3000 bkimminich/juice-shop
-```
-
-### Step 3 — Open the application
-
-```
-http://127.0.0.1:3000
-```
-
-Now you have a **local vulnerable web application** running inside a container.
-
-Because Docker isolates the application from your system, you can safely experiment without affecting your host environment.
-
-### Step 4 — Run the scanner
-
-```
-python app.py http://127.0.0.1:3000
-```
-
-You should start seeing discovered endpoints from the test application.
-
----
-
-# 🎓 What This Project Demonstrates
-
-This project shows understanding of:
-
-* HTTP request handling
-* multithreading
-* response fingerprinting
-* hashing techniques
-* command-line tooling
-* web reconnaissance methodology
-
-More importantly, it shows **initiative**.
-
-Instead of just running tools, the author asked:
-
-> *“How do these tools actually work?”*
-
-…and then built one.
-
-That mindset is what turns beginners into real engineers.
-
----
-
-# 🛠 Requirements
-
-```
-Python 3
-requests
-```
-
-Install dependency:
-
-```
+**Install dependencies**:
+```bash
 pip install requests
 ```
 
----
-
-# ▶️ Usage
-
-```
-python app.py http://target-website.com
-```
-
-Example:
-
-```
-python app.py http://127.0.0.1:3000
-```
+That's it. No virtual environments, no Docker, no ritual sacrifice.
 
 ---
 
-# ⚠️ Ethical Use Disclaimer
+## Usage
 
-This tool is created **strictly for educational and research purposes**.
+```bash
+python dirbrute.py
+```
 
-Do **NOT** use this tool to scan or test:
+It'll walk you through everything:
 
-* websites you do not own
-* systems without explicit permission
-* infrastructure you are not authorized to assess
+```
+  [?] Target URL : https://example.com
+  [?] Threads [10] :
+  [?] Wordlist [wordLists.txt] :
+  [?] Output file [results.txt] :
+  [?] Extensions [php,html,txt...] :
+  [?] Verbose [y/N] : n
+```
 
-Unauthorized scanning may be illegal and unethical.
-
-Always perform security testing **only on systems you own or have written permission to test**.
-
----
-
-
-# 🌱 Future Improvements
-
-Some ideas for expanding the tool:
-
-* custom wordlists
-* configurable thread count
-* wildcard response detection
-* progress bars
-* extension fuzzing
-* parameter fuzzing
-
-The journey of learning never ends.
+Hit Enter to accept defaults. The only required field is the target URL.
 
 ---
 
-# ⭐ Final Thoughts
-
-Every great security researcher starts somewhere.
-
-Often with a simple question like:
-
-> *“What happens if I try this?”*
+## Options
 
 
+| Field | Description | Default |
 
-If you found this interesting, feel free to ⭐ the repo.
+| `Target URL` | Full URL with scheme. Required. | - |
 
-Happy hacking (ethically, of course). 🚀
+| `Threads` | Concurrent requests. Higher = faster, don't overdo it. | `10` |
+
+| `Wordlist` | Path to wordlist file. Must exist on disk. | `wordLists.txt` |
+
+| `Output` | File to save results. Wiped clean each run. | `results.txt` |
+
+| `Extensions` | Comma-separated, no dots. Smart extension handling. | `php,html,txt...` |
+
+| `Verbose` | Print every attempt. Noisy but useful for debugging. | `n` |
+
+---
+
+## How it works
+
+Most tools just check if the response is `200 OK`. That's naive — plenty of servers return `200` for pages that don't exist (looking at you, SPAs), and plenty of real pages return `301` or `500`.
+
+DirBrute does this instead:
+
+1. **Baseline request** — hits a guaranteed-junk URL (`/randomjunk-xyz`) and records the response signature: status code, body length, word count, line count.
+2. **Scan** — for each path in the wordlist, it fires a request and compares the response against the baseline.
+3. **Flag deviations** — if *any* of those four metrics differs meaningfully from baseline, it's reported as a potential find.
+
+This catches things like:
+- Custom 404 pages that return `200` (soft 404s)
+- Login redirects (`302` to `/login`)
+- Endpoints that exist but throw errors (`500`)
+- Directories that redirect to themselves with a trailing slash (`301`)
+
+---
+
+## Example output
+
+```
+  [*] Baseline fingerprint:
+      Status : 404  │  Length : 152  │  Words : 12  │  Lines : 8
+
+  [FOUND]  /admin         [301 │ 0B    │ 0w   │ 0L  → /admin/]
+  [FOUND]  /login.php     [200 │ 4312B │ 312w │ 91L → —]
+  [FOUND]  /config.json   [200 │ 843B  │ 42w  │ 31L → —]
+  [FOUND]  /backup.zip    [200 │ 98432B│ 0w   │ 0L  → —]
+```
+
+---
+
+## Wordlist
+
+A default wordlist (`wordLists.txt`) is included with common paths. It already includes extensions on some entries (like `/backup.bak`, `/config.json`) — DirBrute is smart enough not to double-append extensions to those.
+
+For bigger wordlists, [SecLists](https://github.com/danielmiessler/SecLists) is the go-to. The `Discovery/Web-Content/` directory has everything from small focused lists to the nuclear option.
+
+---
+
+## ⚠️ Legal stuff (read this, seriously)
+
+This tool is for **authorized security testing only**.
+
+Only use it on:
+- Systems you own
+- Systems you have **explicit written permission** to test
+- Intentionally vulnerable practice targets (OWASP Juice Shop, DVWA, HackTheBox, TryHackMe, etc.)
+
+Scanning systems without permission is illegal in most countries. Don't be that person. The tool works great on Juice Shop — go use that.
+
+---
+
+## Tested on
+
+- OWASP Juice Shop ✅
+- Kali Linux (Python 3.11) ✅
+
+---
+
+## Contributing
+
+Found a bug? Have a feature idea? Open an issue or send a PR. Clean code, clear commit messages, and you're in.
+
+---
+
+## Author
+
+Built by **mike**
+
+---
+
+*Happy hunting. Stay legal.* 🎯
